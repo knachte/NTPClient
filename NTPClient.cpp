@@ -136,7 +136,17 @@ unsigned long NTPClient::getEpochTime() const {
          ((millis() - this->_lastUpdate) / 1000); // Time since last update
 }
 
+//todo: check if this is correct for leap years, etc.
+int NTPClient::getYear() const {
+  return ((this->getEpochTime() / 31556926L) + 1970); // 31556926 is the number of seconds in a year
+}
+int NTPClient::getMonth() const {
+  return (((this->getEpochTime() % 31556926L) / 2629743L) + 1); // 2629743 is the number of seconds in a month
+}
 int NTPClient::getDay() const {
+  return ((((this->getEpochTime() % 31556926L) % 2629743L) / 86400L) + 1); // 86400 is the number of seconds in a day
+}
+int NTPClient::getWeekDay() const {
   return (((this->getEpochTime()  / 86400L) + 4 ) % 7); //0 is Sunday
 }
 int NTPClient::getHours() const {

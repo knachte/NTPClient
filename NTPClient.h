@@ -81,7 +81,10 @@ class NTPClient {
      */
     bool isTimeSet() const;
 
-    int getDay() const;
+    int getYear() const;
+    int getMonth() const;
+    int getDay() const; 
+    int getWeekDay() const;
     int getHours() const;
     int getMinutes() const;
     int getSeconds() const;
