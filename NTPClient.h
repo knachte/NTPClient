@@ -106,6 +106,11 @@ class NTPClient {
     String getFormattedTime() const;
 
     /**
+     * @return date formatted like `DD/MM/YYYY`
+     */
+    String getFormattedDate() const;
+
+    /**
      * @return time in seconds since Jan. 1, 1970
      */
     unsigned long getEpochTime() const;

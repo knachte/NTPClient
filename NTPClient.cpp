@@ -21,6 +21,26 @@
 
 #include "NTPClient.h"
 
+namespace {
+void epochToDate(unsigned long epochTime, int* year, int* month, int* day) {
+  const long long z = static_cast<long long>(epochTime / 86400UL) + 719468LL;
+  const long long era = (z >= 0 ? z : z - 146096LL) / 146097LL;
+  const unsigned long doe = static_cast<unsigned long>(z - era * 146097LL);
+  const unsigned long yoe = (doe - doe / 1460UL + doe / 36524UL - doe / 146096UL) / 365UL;
+  long long y = static_cast<long long>(yoe) + era * 400LL;
+  const unsigned long doy = doe - (365UL * yoe + yoe / 4UL - yoe / 100UL);
+  const unsigned long mp = (5UL * doy + 2UL) / 153UL;
+
+  const int d = static_cast<int>(doy - (153UL * mp + 2UL) / 5UL + 1UL);
+  const int m = (mp < 10UL) ? static_cast<int>(mp + 3UL) : static_cast<int>(mp) - 9;
+  y += (m <= 2) ? 1 : 0;
+
+  *year = static_cast<int>(y);
+  *month = m;
+  *day = d;
+}
+}
+
 NTPClient::NTPClient(UDP& udp) {
   this->_udp            = &udp;
 }
@@ -136,15 +156,26 @@ unsigned long NTPClient::getEpochTime() const {
          ((millis() - this->_lastUpdate) / 1000); // Time since last update
 }
 
-//todo: check if this is correct for leap years, etc.
 int NTPClient::getYear() const {
-  return ((this->getEpochTime() / 31556926L) + 1970); // 31556926 is the number of seconds in a year
+  int year = 1970;
+  int month = 1;
+  int day = 1;
+  epochToDate(this->getEpochTime(), &year, &month, &day);
+  return year;
 }
 int NTPClient::getMonth() const {
-  return (((this->getEpochTime() % 31556926L) / 2629743L) + 1); // 2629743 is the number of seconds in a month
+  int year = 1970;
+  int month = 1;
+  int day = 1;
+  epochToDate(this->getEpochTime(), &year, &month, &day);
+  return month;
 }
 int NTPClient::getDay() const {
-  return ((((this->getEpochTime() % 31556926L) % 2629743L) / 86400L) + 1); // 86400 is the number of seconds in a day
+  int year = 1970;
+  int month = 1;
+  int day = 1;
+  epochToDate(this->getEpochTime(), &year, &month, &day);
+  return day;
 }
 int NTPClient::getWeekDay() const {
   return (((this->getEpochTime()  / 86400L) + 4 ) % 7); //0 is Sunday
@@ -157,6 +188,19 @@ int NTPClient::getMinutes() const {
 }
 int NTPClient::getSeconds() const {
   return (this->getEpochTime() % 60);
+}
+
+String NTPClient::getFormattedDate() const {
+  int year = 1970;
+  int month = 1;
+  int day = 1;
+  epochToDate(this->getEpochTime(), &year, &month, &day);
+
+  String dayStr = day < 10 ? "0" + String(day) : String(day);
+  String monthStr = month < 10 ? "0" + String(month) : String(month);
+  String yearStr = String(year);
+
+  return dayStr + "/" + monthStr + "/" + yearStr;
 }
 
 String NTPClient::getFormattedTime() const {
